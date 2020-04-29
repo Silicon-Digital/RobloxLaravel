@@ -8,7 +8,8 @@ To speed up your application this API provides caching functionality using Larav
 | ------------- | ------------- | ------------- |
 | key_name  | A **unique** key name for the cached response  | badge_1234  |
 | ttl | How long the data will be cached for (in seconds)  | 3600 |
-|tags | An array of tags to append to the cached item | ['badges']
+|tags | An array of tags to append to the cached item | ['badges'] |
+
 Internally the API will prefix the cache key with ``roblox_``, if you wish to interact with the cached data directly using the Laravel cache facade see the below examples.
 ```php
 use Illuminate\Support\Facades\Cache;
