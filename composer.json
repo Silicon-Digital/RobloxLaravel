@@ -1,0 +1,32 @@
+{
+    "name": "silicondigital/roblox",
+    "description": "Roblox API for Laravel",
+	"keywords": ["roblox", "laravel", "laravel7"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "NicholasDev",
+            "email": "nicholas@silicon.digital"
+        }
+    ],
+    "require": {
+        "php": ">7.2.5",
+        "illuminate/support": "~5.5 || ~6.0 || ~7.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "SiliconDigital\\Roblox": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SiliconDigital\\Roblox\\RobloxServiceProvider"
+            ],
+            "aliases": {
+                "Twitter": "SiliconDigital\\Roblox\\Facades\\Roblox"
+            }
+        }
+    },
+    "minimum-stability": "stable"
+}
