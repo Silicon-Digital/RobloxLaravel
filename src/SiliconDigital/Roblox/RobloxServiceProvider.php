@@ -11,7 +11,7 @@ class RobloxServiceProvider extends ServiceProvider
      *
      * @var bool
      */
-    protected $defer = false;
+    protected $defer = true;
 
     /**
      * Bootstrap the application events.
@@ -20,7 +20,6 @@ class RobloxServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
     }
 
     /**
@@ -57,6 +56,8 @@ class RobloxServiceProvider extends ServiceProvider
         $this->app->singleton(Roblox::class, function () use ($app) {
             return new Roblox($app['config'], $app['session.store']);
         });
+
+        $this->app->alias('roblox', Roblox::class);
     }
 
     /**
@@ -66,6 +67,6 @@ class RobloxServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['roblox'];
+        return ['roblox', Roblox::class];
     }
 }
