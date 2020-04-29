@@ -2,137 +2,116 @@
 
 namespace SiliconDigital\Roblox;
 
-use Illuminate\Config\Repository as Config;
-use Illuminate\Session\Store as SessionStore;
+use BadMethodCallException;
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Http;
 use RunTimeException;
 use SiliconDigital\Roblox\Traits\BadgesTrait;
+use SiliconDigital\Roblox\Traits\GamesTrait;
 
 class Roblox
 {
     use BadgesTrait;
+    use GamesTrait;
 
     /**
      * Store the config values.
      */
-    private $roblox_config;
+    private static $roblox_config;
 
     /**
      * Store the config values for the parent class.
      */
-    private $parent_config;
+    private static $parent_config;
 
-    private $session;
+    private static $session;
 
-    /**
-     * Only for debugging.
-     */
-    private $debug;
-
-    public function __construct(Config $config, SessionStore $session)
+    public static function query($request_url, $requestMethod = 'get', $json_response = true, $data_array = false)
     {
-        if ($config->has('roblox::config')) {
-            $this->roblox_config = $config->get('roblox::config');
-        } elseif ($config->get('roblox')) {
-            $this->roblox_config = $config->get('roblox');
-        } else {
-            throw new RunTimeException('No config found');
-        }
-
-        $this->debug = (isset($this->roblox_config['debug']) && $this->roblox_config['debug']) ? true : false;
-        $this->session = $session;
-
-        $this->parent_config = [];
-        $this->parent_config['roblox_token'] = $this->roblox_config['ROBLOX_TOKEN'];
-
-        $config = array_merge($this->parent_config, $this->roblox_config);
-
-        parent::__construct($this->parent_config);
-    }
-
-    public function query($request_url, $requestMethod = 'GET', $parameters = [], $multipart = false, $extension = 'json', $appOnly = false)
-    {
-        $url = parent::url($request_url);
-
-        if ($appOnly) {
-
-            parent::apponly_request(['method' => $requestMethod, 'url' => $request_url]);
-        } else {
-            parent::user_request([
-                'method'    => $requestMethod,
-                'host'      => $request_url,
-                'url'       => $url,
-                'params'    => $parameters,
-                'multipart' => $multipart,
-            ]);
-        }
-
-        $response = $this->response;
-
-        $format = 'object';
-
-        if (isset($parameters['format'])) {
-            $format = $parameters['format'];
-        }
-
-        $error = $response['error'];
-
-        if ($error) {
-            ## Error handling
-        }
-
-        if (isset($response['code']) && ($response['code'] < 200 || $response['code'] > 206)) {
-            $_response = $this->jsonDecode($response['response'], true);
-
-            if (is_array($_response)) {
-                if (array_key_exists('errors', $_response)) {
-                    $error_code = $_response['errors'][0]['code'];
-                    $error_msg = $_response['errors'][0]['message'];
-                } else {
-                    $error_code = $response['code'];
-                    $error_msg = $response['error'];
-                }
+        $request = Http::$requestMethod($request_url);
+        if ($request->successful()) {
+            if ($json_response) {
+                return self::formatRobloxJson($request->json(), $data_array);
             } else {
-                $error_code = $response['code'];
-                $error_msg = ($error_code == 503) ? 'Service Unavailable' : 'Unknown error';
+                return $request->body();
+            }
+        } else if ($request->clientError()) {
+            if (
+                App::isLocal() &&
+                $request->json() &&
+                Arr::has($request->json(), 'errors')
+            ) {
+                return self::handleRobloxApiError(collect($request->json()['errors']));
             }
 
-            throw new RunTimeException('['.$error_code.'] '.$error_msg, $response['code']);
+            throw new BadMethodCallException('A client error occoured when trying to make the request to Roblox');
+        } else if ($request->serverError()) {
+            throw new BadMethodCallException('The Roblox API returned a server error with the following code ' . $request->status());
         }
-
-        switch ($format) {
-            default:
-            case 'object': $response = $this->jsonDecode($response['response']);
-            break;
-            case 'json': $response = $response['response'];
-            break;
-            case 'array': $response = $this->jsonDecode($response['response'], true);
-            break;
-        }
-
-        return $response;
     }
 
-    public function get($name, $parameters = [], $multipart = false, $extension = 'json', $appOnly = false)
+    public static function get($path, $is_json = true, $data_array = false, $cache_params = [])
     {
-        return $this->query($name, 'GET', $parameters, $multipart, $extension, $appOnly);
+        return self::query(
+            $path,
+            'get',
+            $is_json,
+            $data_array
+        );
     }
 
-    public function post($name, $parameters = [], $multipart = false, $extension = 'json', $appOnly = false)
+    public static function post($name, $parameters = [], $multipart = false, $extension = 'json', $appOnly = false)
     {
-        return $this->query($name, 'POST', $parameters, $multipart, $extension, $appOnly);
+        return self::query($name, 'post', $parameters, $multipart, $extension, $appOnly);
     }
 
     public function delete($name, $parameters = [], $multipart = false, $extension = 'json', $appOnly = false)
     {
-        return $this->query($name, 'DELETE', $parameters, $multipart, $extension, $appOnly);
+        return self::query($name, 'DELETE', $parameters, $multipart, $extension, $appOnly);
     }
 
-    private function jsonDecode($json, $assoc = false)
+    /**
+     * Handles a Roblox API error response
+     *
+     * @param Illuminate\Support\Collection $error
+     * 
+     * @return string
+     */
+    private static function handleRobloxApiError(Collection $errors)
     {
-        if (version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)) {
-            return json_decode($json, $assoc, 512, JSON_BIGINT_AS_STRING);
-        } else {
-            return json_decode($json, $assoc);
+        $first_error = $errors->first();
+        
+        if ($first_error && isset($first_error['message'])) {
+            return $first_error['message'];
         }
+
+        return 'A Roblox API error occoured';
+    }
+
+    private static function formatRobloxJson($json, $data_array)
+    {
+        $json = $data_array ? $json['data'] : $json;
+        $date_casts = ['created', 'updated', 'awardedDate'];
+
+        if ($data_array) {
+            foreach ($json as &$array_object) {
+                foreach ($date_casts as $cast) {
+                    if (isset($array_object[$cast])) {
+                        $array_object[$cast] = Carbon::parse($array_object[$cast]);
+                    }
+                }
+            }
+        } else {
+            foreach ($date_casts as $cast) {
+                if (isset($json[$cast])) {
+                    $json[$cast] = Carbon::parse($json[$cast]);
+                }
+            }
+        }
+
+        return $json;
     }
 }
