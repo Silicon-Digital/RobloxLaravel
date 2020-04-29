@@ -1,9 +1,9 @@
-# RobloxLaravel
-Laravel Package for Roblox API's
+# Roblox Laravel API
+Unofficial Roblox API package for Laravel 7
 
 ## Caching Responses
 To speed up your application this API provides caching functionality using Laravel's built in cache functions. You'll need to make sure this is configured before using this feature. [Laravel Docs: Cache](https://laravel.com/docs/master/cache).
-### All API's will allow you to pass through options for the cache, the key must be unique otherwise it will be overwritten. Typically you should set the key name as what the response will be for example ``badge_{badge_id}``.
+#### All API's will allow you to pass through options for the cache, the key must be unique otherwise it will be overwritten. Typically you should set the key name as what the response will be for example ``badge_{badge_id}``.
 | Option  | Functionality | Example             |
 | ------------- | ------------- | ------------- |
 | key_name  | A **unique** key name for the cached response  | badge_1234  |
