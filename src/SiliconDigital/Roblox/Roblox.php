@@ -51,12 +51,6 @@ class Roblox
 
     public function query($request_url, $requestMethod = 'GET', $parameters = [], $multipart = false, $extension = 'json', $appOnly = false)
     {
-        $this->config['host'] = $this->roblox_config['API_URL'];
-
-        if ($multipart) {
-            $this->config['host'] = $this->roblox_config['UPLOAD_URL'];
-        }
-
         $url = parent::url($request_url);
 
         if ($appOnly) {
