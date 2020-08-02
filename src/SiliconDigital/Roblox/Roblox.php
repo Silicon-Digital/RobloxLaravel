@@ -39,6 +39,7 @@ class Roblox
     {
         $from_cache = self::fromCache();
         if ($from_cache) {
+            self::$cache_config = [];
             return $from_cache;
         }
         $request = Http::withCookies($cookies, '.roblox.com')
