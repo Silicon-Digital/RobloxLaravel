@@ -1,5 +1,5 @@
 # Roblox Laravel API
-Unofficial Roblox API Wrapper for Laravel 7
+Unofficial Roblox API Wrapper for Laravel 8
 
 ## Functions
 
