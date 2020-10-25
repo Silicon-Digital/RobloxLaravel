@@ -117,6 +117,8 @@ class Roblox
      */
     public static function setCacheParams(array $parameters)
     {
+        self::$cache_config = [];
+        
         if (Arr::get($parameters, 'cache') && $parameters['cache']) {
             if (!Arr::get($parameters, 'key')) {
                 throw new BadMethodCallException('You did not set a key in the cache configuration.');
