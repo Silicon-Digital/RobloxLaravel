@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use SiliconDigital\Roblox\Traits\BadgesTrait;
 use SiliconDigital\Roblox\Traits\GamesTrait;
 use Illuminate\Support\Facades\Cache;
+use SiliconDigital\Roblox\Traits\GroupsTrait;
 use SiliconDigital\Roblox\Traits\MarketplaceTrait;
 use SiliconDigital\Roblox\Traits\UsersTrait;
 
@@ -20,6 +21,7 @@ class Roblox
     use GamesTrait;
     use MarketplaceTrait;
     use UsersTrait;
+    use GroupsTrait;
 
     /**
      * Store the config values.
@@ -118,7 +120,7 @@ class Roblox
     public static function setCacheParams(array $parameters)
     {
         self::$cache_config = [];
-        
+
         if (Arr::get($parameters, 'cache') && $parameters['cache']) {
             if (!Arr::get($parameters, 'key')) {
                 throw new BadMethodCallException('You did not set a key in the cache configuration.');

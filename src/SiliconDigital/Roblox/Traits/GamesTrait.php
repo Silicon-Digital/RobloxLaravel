@@ -279,4 +279,26 @@ trait GamesTrait
 
         return self::get(self::$games_v2_api . 'users/' . $user_id . '/games?sortOrder=' . $sort_order . '&limit=' . $limit . '&accessFilter=' . $access_filter, true, true);
     }
+
+    /**
+     * Gets games for a passed through group ID
+     *
+     * @param integer $group_id The group id
+     * @param string $access_filter Access filter as set on the game (Public, Private, All)
+     * @param string $sort_order Sort ordering of the games (Asc, Desc)
+     * @param integer $limit $limit Limit of games (Max: 100)
+     * @param array $cache_params Default API cache parameters
+     * 
+     * @return array
+     */
+    public static function getGroupGames(int $group_id, string $access_filter = 'Public', string $sort_order = 'Asc', int $limit = 50, $cache_params = [])
+    {
+        if (is_numeric($limit) && $limit > 100) {
+            throw new BadMethodCallException('The limit cannot be greater than 100');
+        }
+
+        $cache_params['identifier'] = $group_id;
+
+        return self::get(self::$games_v2_api . 'groups/' . $group_id . '/games?sortOrder=' . $sort_order . '&limit=' . $limit . '&accessFilter=' . $access_filter, true, true);
+    }
 }
