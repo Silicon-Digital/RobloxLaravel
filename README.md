@@ -1,6 +1,11 @@
 # Roblox Laravel API
 Unofficial Roblox API Wrapper for Laravel 8
 
+## Installation
+```bash
+composer require silicondigital/roblox
+```
+
 ## Functions
 
 ### Badges
