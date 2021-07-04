@@ -24,7 +24,7 @@
                 "SiliconDigital\\Roblox\\RobloxServiceProvider"
             ],
             "aliases": {
-                "Twitter": "SiliconDigital\\Roblox\\Facades\\Roblox"
+                "Roblox": "SiliconDigital\\Roblox\\Facades\\Roblox"
             }
         }
     },
