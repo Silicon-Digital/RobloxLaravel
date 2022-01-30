@@ -1,5 +1,5 @@
 # Roblox Laravel API
-Unofficial Roblox API Wrapper for Laravel 8
+Unofficial Roblox API Wrapper for Laravel 9
 
 ## Installation
 ```bash
